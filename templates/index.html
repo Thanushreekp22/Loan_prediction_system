@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Loan Approval Prediction</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        html, body {
+            width: 100%;
+        }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #0f4c81, #1e88e5, #64b5f6);
+            margin: 0;
+            padding: 24px 14px;
+            line-height: 1.35;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        .container {
+            background: white;
+            width: min(750px, 100%);
+            margin: 0 auto;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0px 8px 20px rgba(0,0,0,0.2);
+        }
+
+        h2 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .row {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .column {
+            width: 48%;
+        }
+
+        label {
+            font-weight: 600;
+            display: block;
+            margin-top: 8px;
+            color: #444;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+            background: #fff;
+            color: #222;
+            font: inherit;
+            min-height: 38px;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+
+        input:focus, select:focus {
+            border-color: #1e88e5;
+            outline: none;
+        }
+
+        button {
+            display: block;
+            margin: 20px auto;
+            padding: 12px 25px;
+            background: #1565c0;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #0d47a1;
+        }
+
+        .result {
+            text-align: center;
+            margin-top: 15px;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .approved {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .rejected {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .neutral {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .info {
+            text-align: center;
+            margin-top: 15px;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            background: #e6f0ff;
+            color: #1e3a8a;
+        }
+
+        .insights {
+            margin-top: 16px;
+        }
+
+        .score {
+            text-align: center;
+            font-size: 16px;
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 12px;
+        }
+
+        .insight-box {
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 10px 12px;
+            margin-top: 10px;
+            background: #f8fafc;
+        }
+
+        .insight-box h4 {
+            margin: 0 0 8px 0;
+            color: #1a202c;
+            font-size: 15px;
+        }
+
+        .insight-box ul {
+            margin: 0;
+            padding-left: 20px;
+            color: #2d3748;
+        }
+
+        .insight-box li {
+            margin-bottom: 6px;
+        }
+
+        .result i {
+            margin-right: 8px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 18px;
+            }
+
+            .row {
+                flex-direction: column;
+                gap: 4px;
+            }
+
+            .column {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h2>💳 Loan Approval Prediction</h2>
+
+<form action="/predict" method="post">
+
+<div class="row">
+
+<!-- LEFT -->
+<div class="column">
+
+<label>Gender</label>
+<select name="Gender" required>
+    <option value="" disabled {% if not form_values.Gender %}selected{% endif %}>Select Gender</option>
+    <option value="1" {% if form_values.Gender == "1" or form_values.Gender == "1.0" %}selected{% endif %}>Male</option>
+    <option value="0" {% if form_values.Gender == "0" or form_values.Gender == "0.0" %}selected{% endif %}>Female</option>
+</select>
+
+<label>Marital Status</label>
+<select name="Married" required>
+    <option value="" disabled {% if not form_values.Married %}selected{% endif %}>Select Marital Status</option>
+    <option value="1" {% if form_values.Married == "1" or form_values.Married == "1.0" %}selected{% endif %}>Married</option>
+    <option value="0" {% if form_values.Married == "0" or form_values.Married == "0.0" %}selected{% endif %}>Single</option>
+</select>
+
+<label>Dependents</label>
+<input type="number" name="Dependents" value="{{ form_values.Dependents }}" required>
+
+<label>Education</label>
+<select name="Education" required>
+    <option value="" disabled {% if not form_values.Education %}selected{% endif %}>Select Education</option>
+    <option value="1" {% if form_values.Education == "1" or form_values.Education == "1.0" %}selected{% endif %}>Graduate</option>
+    <option value="0" {% if form_values.Education == "0" or form_values.Education == "0.0" %}selected{% endif %}>Not Graduate</option>
+</select>
+
+<label>Self Employed</label>
+<select name="Self_Employed" required>
+    <option value="" disabled {% if not form_values.Self_Employed %}selected{% endif %}>Select Employment Type</option>
+    <option value="1" {% if form_values.Self_Employed == "1" or form_values.Self_Employed == "1.0" %}selected{% endif %}>Yes</option>
+    <option value="0" {% if form_values.Self_Employed == "0" or form_values.Self_Employed == "0.0" %}selected{% endif %}>No</option>
+</select>
+
+</div>
+
+<!-- RIGHT -->
+<div class="column">
+
+<label>Applicant Income (₹)</label>
+<input type="number" name="ApplicantIncome" value="{{ form_values.ApplicantIncome }}" required>
+
+<label>Coapplicant Income (₹)</label>
+<input type="number" name="CoapplicantIncome" value="{{ form_values.CoapplicantIncome }}" required>
+
+<label>Loan Amount (₹)</label>
+<input type="number" name="LoanAmount" value="{{ form_values.LoanAmount }}" required>
+
+<label>Loan Term (Years)</label>
+<input type="number" name="Loan_Amount_Term" value="{{ form_values.Loan_Amount_Term }}" required>
+
+<label>Credit History</label>
+<select name="Credit_History" required>
+    <option value="" disabled {% if not form_values.Credit_History %}selected{% endif %}>Select Credit History</option>
+    <option value="1" {% if form_values.Credit_History == "1" or form_values.Credit_History == "1.0" %}selected{% endif %}>Good</option>
+    <option value="0" {% if form_values.Credit_History == "0" or form_values.Credit_History == "0.0" %}selected{% endif %}>Bad</option>
+</select>
+
+<label>Property Area</label>
+<select name="Property_Area" required>
+    <option value="" disabled {% if not form_values.Property_Area %}selected{% endif %}>Select Property Area</option>
+    <option value="0" {% if form_values.Property_Area == "0" or form_values.Property_Area == "0.0" %}selected{% endif %}>Rural</option>
+    <option value="1" {% if form_values.Property_Area == "1" or form_values.Property_Area == "1.0" %}selected{% endif %}>Semiurban</option>
+    <option value="2" {% if form_values.Property_Area == "2" or form_values.Property_Area == "2.0" %}selected{% endif %}>Urban</option>
+</select>
+
+</div>
+
+</div>
+
+<button type="submit">Predict Loan Status</button>
+
+</form>
+
+<!-- RESULT -->
+{% if prediction %}
+    {% if "APPROVED" in prediction %}
+        <div class="result approved"><i class="fa-solid fa-circle-check"></i>{{ prediction }}</div>
+    {% elif "REJECTED" in prediction %}
+        <div class="result rejected"><i class="fa-solid fa-circle-xmark"></i>{{ prediction }}</div>
+    {% else %}
+        <div class="result neutral"><i class="fa-solid fa-circle-info"></i>{{ prediction }}</div>
+    {% endif %}
+
+    <div class="insights">
+        <div class="score">Approval Chance: {{ approval_chance }}%</div>
+
+        {% if rejection_reasons %}
+        <div class="insight-box">
+            <h4>Possible Rejection Reasons</h4>
+            <ul>
+                {% for reason in rejection_reasons %}
+                    <li>{{ reason }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+
+        {% if plus_points %}
+        <div class="insight-box">
+            <h4>Profile Plus Points</h4>
+            <ul>
+                {% for point in plus_points %}
+                    <li>{{ point }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+    </div>
+{% endif %}
+
+{% if info_message and not prediction %}
+    <div class="info">{{ info_message }}</div>
+{% endif %}
+
+</div>
+
+</body>
+</html>
