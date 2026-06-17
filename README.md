@@ -1,33 +1,37 @@
-# Loan Approval Prediction Project
+# Loan Approval Prediction System
 
-This project is a small Flask web application that predicts whether a loan is likely to be approved based on applicant details such as income, credit history, education, employment type, and property area.
+This project is a Flask-based machine learning web app that predicts whether a loan application is likely to be approved. The prediction is made from applicant details such as income, credit history, education, employment type, and property area.
 
-The app loads two pre-trained machine learning models, a Decision Tree and a K-Nearest Neighbors model, then compares their predictions to produce a final result. It also shows an approval chance and simple explanation points for why a profile looks stronger or weaker.
+The app uses two trained classifiers, a Decision Tree and a K-Nearest Neighbors model, and combines their outputs to show a final decision, an approval chance, and short explanation points.
 
-## What the project does
+## Project Overview
 
-- Collects loan applicant details through a web form
-- Converts the form inputs into the numeric feature layout used during training
-- Loads and evaluates two saved models: `model_dt.pkl` and `model_knn.pkl`
-- Displays an approval, rejection, or manual review outcome
-- Generates simple positive and negative insights for the result
+The workflow is simple:
 
-## Main files
+1. The user enters loan details in the web form.
+2. The form values are converted into the numeric format used during training.
+3. The app creates a sample in the same feature order as the training data.
+4. Both saved models evaluate the sample.
+5. The result page shows approval, rejection, or manual review, along with reasons and strengths.
 
-- `app.py` - Flask application, prediction logic, and explanation generation
-- `templates/index.html` - Frontend form and prediction result display
-- `inspect_models.py` - Helper script for inspecting trained model properties
-- `train.csv` - Training dataset used for model development and accuracy checks
-- `Untitled.ipynb` - Notebook workspace for experimentation and model building
+## Main Files
 
-## How it works
+- `app.py` - Flask app, prediction logic, result explanation, and model loading
+- `templates/index.html` - Frontend form and result display page
+- `inspect_models.py` - Script for printing model details such as depth and feature importances
+- `train.csv` - Dataset used for training and local accuracy checks
+- `Untitled.ipynb` - Notebook used for experimentation and model building
+- `Snapshots/` - Saved screenshots of the running application
 
-1. The user fills in the loan application form in the browser.
-2. The app validates the submitted values and converts them to numeric form.
-3. A sample is built in the same column order used during training.
-4. The Decision Tree and KNN models make predictions on the sample.
-5. The app combines both model outputs and estimated probabilities into a final loan decision.
-6. The page also shows explanation points such as credit history, income strength, and debt-to-income ratio.
+## Screenshots
+
+The `Snapshots/` folder contains example outputs from the app:
+
+- [Empty form state](Snapshots/loan-prediction-empty-form.png)
+- [Borderline decision with explanations](Snapshots/loan-prediction-borderline-form.png)
+- [Borderline result details](Snapshots/loan-prediction-borderline-details.png)
+- [Approved result example 1](Snapshots/loan-prediction-approved-form-1.png)
+- [Approved result example 2](Snapshots/loan-prediction-approved-form-2.png)
 
 ## Requirements
 
@@ -35,9 +39,10 @@ The app loads two pre-trained machine learning models, a Decision Tree and a K-N
 - Flask
 - pandas
 - scikit-learn
-- The trained model files `model_dt.pkl` and `model_knn.pkl`
+- `model_dt.pkl`
+- `model_knn.pkl`
 
-## Run locally
+## Run Locally
 
 1. Install the Python dependencies.
 2. Make sure `model_dt.pkl` and `model_knn.pkl` are present in the project root.
@@ -51,6 +56,6 @@ python app.py
 
 ## Notes
 
-- The app expects the training data and the saved models to use the same feature encoding.
+- The app expects the training data and saved models to use the same feature encoding.
 - If the model files are missing, the Flask app will fail to start.
-- `inspect_models.py` can be used to print model details such as depth, neighbors, and feature importances.
+- `inspect_models.py` can be used to inspect model metadata before or after running the app.
