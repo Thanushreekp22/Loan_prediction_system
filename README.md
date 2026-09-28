@@ -4,6 +4,8 @@ This project is a Flask-based machine learning web app that predicts whether a l
 
 The app uses two trained classifiers, a Decision Tree and a K-Nearest Neighbors model, and combines their outputs to show a final decision, an approval chance, and short explanation points.
 
+**Live Demo:** https://loan-prediction-system-66yw.onrender.com/
+
 ## Project Overview
 
 The workflow is simple:
