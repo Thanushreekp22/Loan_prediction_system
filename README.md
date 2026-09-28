@@ -65,6 +65,18 @@ When the app starts, it evaluates both saved models on a reproducible 20% strati
 - F1 score for approved applications
 - Confusion matrix in `[[TN, FP], [FN, TP]]` format.
 
+## Deploy On Render
+
+1. Push this repository to GitHub.
+2. In Render, choose **New +** and create a **Blueprint** from the repository.
+3. Render reads `render.yaml` and uses the configured build and start commands.
+4. Open the generated public URL after the deployment finishes.
+
+The equivalent manual settings are:
+
+- Build command: `pip install -r requirements.txt`
+- Start command: `gunicorn app:app`
+
 ## Notes
 
 - The app expects the training data and saved models to use the same feature encoding.
