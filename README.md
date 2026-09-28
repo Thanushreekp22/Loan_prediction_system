@@ -17,6 +17,7 @@ The workflow is simple:
 ## Main Files
 
 - `app.py` - Flask app, prediction logic, result explanation, and model loading
+- `evaluation.py` - Holdout evaluation metrics printed at server startup
 - `templates/index.html` - Frontend form and result display page
 - `inspect_models.py` - Script for printing model details such as depth and feature importances
 - `train.csv` - Dataset used for training and local accuracy checks
@@ -54,8 +55,20 @@ python app.py
 
 4. Open the local Flask address shown in the terminal.
 
+## Model Evaluation
+
+When the app starts, it evaluates both saved models on a reproducible 20% stratified holdout from `train.csv`. The terminal reports:
+
+- Accuracy
+- Precision for approved applications
+- Recall for approved applications
+- F1 score for approved applications
+- Confusion matrix in `[[TN, FP], [FN, TP]]` format.
+
 ## Notes
 
 - The app expects the training data and saved models to use the same feature encoding.
 - If the model files are missing, the Flask app will fail to start.
 - `inspect_models.py` can be used to inspect model metadata before or after running the app.
+- `evaluation.py` can also be run directly with `python evaluation.py` to print the same metrics without starting Flask.
+- The form accepts annual income in rupees and loan amounts in rupees; `app.py` converts these values to the raw units expected by the saved models.

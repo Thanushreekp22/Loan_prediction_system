@@ -232,14 +232,14 @@
 <!-- RIGHT -->
 <div class="column">
 
-<label>Applicant Income (₹)</label>
-<input type="number" name="ApplicantIncome" value="{{ form_values.ApplicantIncome }}" required>
+<label>Applicant Annual Income (₹)</label>
+<input type="number" name="ApplicantIncome" value="{{ form_values.ApplicantIncome }}" list="applicant-income-options" min="0" step="any" required>
 
-<label>Coapplicant Income (₹)</label>
-<input type="number" name="CoapplicantIncome" value="{{ form_values.CoapplicantIncome }}" required>
+<label>Coapplicant Annual Income (₹)</label>
+<input type="number" name="CoapplicantIncome" value="{{ form_values.CoapplicantIncome }}" list="coapplicant-income-options" min="0" step="any" required>
 
 <label>Loan Amount (₹)</label>
-<input type="number" name="LoanAmount" value="{{ form_values.LoanAmount }}" required>
+<input type="number" name="LoanAmount" value="{{ form_values.LoanAmount }}" list="loan-amount-options" min="0" step="any" required>
 
 <label>Loan Term (Years)</label>
 <input type="number" name="Loan_Amount_Term" value="{{ form_values.Loan_Amount_Term }}" required>
@@ -262,6 +262,30 @@
 </div>
 
 </div>
+
+<datalist id="applicant-income-options">
+    <option value="300000" label="₹3 lakh"></option>
+    <option value="600000" label="₹6 lakh"></option>
+    <option value="900000" label="₹9 lakh"></option>
+    <option value="1200000" label="₹12 lakh"></option>
+    <option value="1800000" label="₹18 lakh"></option>
+</datalist>
+
+<datalist id="coapplicant-income-options">
+    <option value="0"></option>
+    <option value="120000" label="₹1.2 lakh"></option>
+    <option value="300000" label="₹3 lakh"></option>
+    <option value="600000" label="₹6 lakh"></option>
+    <option value="1200000" label="₹12 lakh"></option>
+</datalist>
+
+<datalist id="loan-amount-options">
+    <option value="500000" label="₹5 lakh"></option>
+    <option value="1000000" label="₹10 lakh"></option>
+    <option value="1500000" label="₹15 lakh"></option>
+    <option value="2000000" label="₹20 lakh"></option>
+    <option value="3000000" label="₹30 lakh"></option>
+</datalist>
 
 <button type="submit">Predict Loan Status</button>
 

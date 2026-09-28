@@ -1,8 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for, session
 import pickle
 import pandas as pd
-from sklearn.metrics import accuracy_score
-from sklearn.preprocessing import LabelEncoder
+from evaluation import evaluate_models
 
 app = Flask(__name__)
 app.secret_key = "loan_app_dev_secret_key"
@@ -85,14 +84,14 @@ def build_explanations(form_data):
     else:
         plus_points.append("Good credit history improves repayment confidence.")
 
-    if total_income < 3000:
+    if total_income < 36000:
         rejection_reasons.append("Total household income is relatively low.")
-    elif total_income >= 7000:
+    elif total_income >= 84000:
         plus_points.append("Strong combined income supports repayment ability.")
 
-    if debt_to_income > 0.45:
+    if debt_to_income > 4.5:
         rejection_reasons.append("Requested loan amount is high compared to total income.")
-    elif debt_to_income <= 0.30:
+    elif debt_to_income <= 3:
         plus_points.append("Loan amount is well aligned with income level.")
 
     if loan_term_years > 30:
@@ -120,35 +119,6 @@ def build_explanations(form_data):
 
     return rejection_reasons, plus_points
 
-
-def print_model_accuracy():
-    try:
-        data = pd.read_csv("train.csv")
-
-        # Keep preprocessing aligned with model training notebook.
-        data['LoanAmount'] = data['LoanAmount'].fillna(data['LoanAmount'].mean())
-        data['Loan_Amount_Term'] = data['Loan_Amount_Term'].fillna(data['Loan_Amount_Term'].mean())
-        data['Gender'] = data['Gender'].fillna(data['Gender'].mode()[0])
-        data['Married'] = data['Married'].fillna(data['Married'].mode()[0])
-        data['Dependents'] = data['Dependents'].fillna(data['Dependents'].mode()[0])
-        data['Self_Employed'] = data['Self_Employed'].fillna(data['Self_Employed'].mode()[0])
-        data['Credit_History'] = data['Credit_History'].fillna(data['Credit_History'].mode()[0])
-
-        for col in data.columns:
-            if data[col].dtype == 'object':
-                encoder = LabelEncoder()
-                data[col] = encoder.fit_transform(data[col])
-
-        X = data[columns]
-        y = data['Loan_Status']
-
-        dt_acc = accuracy_score(y, dt.predict(X))
-        knn_acc = accuracy_score(y, knn.predict(X))
-
-        print(f"[MODEL METRICS] Decision Tree Accuracy: {dt_acc * 100:.2f}%")
-        print(f"[MODEL METRICS] KNN Accuracy: {knn_acc * 100:.2f}%")
-    except Exception as exc:
-        print(f"[MODEL METRICS] Could not compute accuracy: {exc}")
 
 @app.route('/')
 def home():
@@ -207,7 +177,12 @@ def predict():
         }
         return redirect(url_for("home"))
 
-    values = [0] + list(form_data.values())
+    model_form_data = form_data.copy()
+    model_form_data["ApplicantIncome"] /= 12
+    model_form_data["CoapplicantIncome"] /= 12
+    model_form_data["LoanAmount"] /= 1000
+
+    values = [0] + list(model_form_data.values())
     
     sample = pd.DataFrame([values], columns=columns)
     
@@ -242,5 +217,5 @@ def predict():
     return redirect(url_for("home"))
 
 if __name__ == "__main__":
-    print_model_accuracy()
+    evaluate_models()
     app.run(debug=True)
