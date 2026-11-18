@@ -10,10 +10,10 @@ app.secret_key = "loan_app_dev_secret_key"
 dt = pickle.load(open("model_dt.pkl", "rb"))
 knn = pickle.load(open("model_knn.pkl", "rb"))
 
-# Column names (same as training)
-columns = ['Loan_ID','Gender','Married','Dependents','Education',
-           'Self_Employed','ApplicantIncome','CoapplicantIncome',
-           'LoanAmount','Loan_Amount_Term','Credit_History','Property_Area']
+# Column names (same as training, Loan_ID excluded — it is an identifier only)
+columns = ['Gender', 'Married', 'Dependents', 'Education',
+           'Self_Employed', 'ApplicantIncome', 'CoapplicantIncome',
+           'LoanAmount', 'Loan_Amount_Term', 'Credit_History', 'Property_Area']
 
 default_form_data = {
     "Gender": 1.0,
@@ -182,14 +182,50 @@ def predict():
     model_form_data["CoapplicantIncome"] /= 12
     model_form_data["LoanAmount"] /= 1000
 
-    values = [0] + list(model_form_data.values())
-    
-    sample = pd.DataFrame([values], columns=columns)
-    
-    dt_result = int(dt.predict(sample)[0])
-    knn_result = int(knn.predict(sample)[0])
-    dt_prob = get_model_probability(dt, sample)
-    knn_prob = get_model_probability(knn, sample)
+    # ------------------------------------------------------------------
+    # Build sample for the Decision Tree (original format):
+    #   - 12 columns including Loan_ID placeholder
+    #   - All values numeric (label-encoded categorical)
+    # ------------------------------------------------------------------
+    dt_values = [0] + list(model_form_data.values())
+    dt_columns = ['Loan_ID'] + columns
+    sample_dt = pd.DataFrame([dt_values], columns=dt_columns)
+
+    # ------------------------------------------------------------------
+    # Build sample for the KNN pipeline:
+    #   - 11 columns (Loan_ID excluded)
+    #   - Categorical columns as original strings (OneHotEncoder handles them)
+    #   - Numerical columns as floats (StandardScaler inside pipeline)
+    # ------------------------------------------------------------------
+    category_map = {
+        "Gender": {"1.0": "Male", "0.0": "Female", 1.0: "Male", 0.0: "Female"},
+        "Married": {"1.0": "Yes", "0.0": "No", 1.0: "Yes", 0.0: "No"},
+        "Education": {"1.0": "Graduate", "0.0": "Not Graduate",
+                      1.0: "Graduate", 0.0: "Not Graduate"},
+        "Self_Employed": {"1.0": "Yes", "0.0": "No", 1.0: "Yes", 0.0: "No"},
+        "Property_Area": {"0.0": "Rural", "1.0": "Semiurban", "2.0": "Urban",
+                          0.0: "Rural", 1.0: "Semiurban", 2.0: "Urban"},
+    }
+
+    dep_val = model_form_data["Dependents"]
+    model_input = {}
+    for col in columns:
+        if col in category_map:
+            key = model_form_data[col]
+            if isinstance(key, float):
+                key = str(key)
+            model_input[col] = category_map[col].get(key, str(key))
+        elif col == "Dependents":
+            model_input[col] = str(int(dep_val)) if dep_val is not None else "0"
+        else:
+            model_input[col] = model_form_data[col]
+
+    sample_knn = pd.DataFrame([model_input], columns=columns)
+
+    dt_result = int(dt.predict(sample_dt)[0])
+    knn_result = int(knn.predict(sample_knn)[0])
+    dt_prob = get_model_probability(dt, sample_dt)
+    knn_prob = get_model_probability(knn, sample_knn)
     approval_chance = round(((dt_prob + knn_prob) / 2) * 100, 2)
 
     rejection_reasons, plus_points = build_explanations(form_data)

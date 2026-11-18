@@ -20,14 +20,30 @@ print(f"Feature Importances:\n{pd.Series(dt.feature_importances_, index=dt.featu
 # Load KNN Model
 print("\n\n👥 K-NEAREST NEIGHBORS MODEL (model_knn.pkl)")
 print("-" * 60)
-knn = pickle.load(open("model_knn.pkl", "rb"))
-print(f"Model Type: {type(knn).__name__}")
+knn_pipeline = pickle.load(open("model_knn.pkl", "rb"))
+print(f"Model Type: {type(knn_pipeline).__name__}")
+print(f"Pipeline Steps: {[name for name, _ in knn_pipeline.steps]}")
+
+# Access the KNN classifier within the pipeline
+knn = knn_pipeline.named_steps["knn"]
+preprocessor = knn_pipeline.named_steps["preprocessor"]
+
 print(f"K (neighbors): {knn.n_neighbors}")
 print(f"Distance Metric: {knn.metric}")
 print(f"Number of Training Samples Stored: {knn.n_samples_fit_}")
-print(f"Number of Features: {knn.n_features_in_}")
+print(f"Number of Features (after preprocessing): {knn.n_features_in_}")
 print(f"Feature Names: {knn.feature_names_in_ if hasattr(knn, 'feature_names_in_') else 'Not stored'}")
 print(f"Classes: {knn.classes_}")
+
+# Show preprocessing details
+print("\n📋 PREPROCESSING DETAILS:")
+print(f"  Numerical features (StandardScaler): {preprocessor.transformers_[0][2]}")
+print(f"  Categorical features (OneHotEncoder): {preprocessor.transformers_[1][2]}")
+try:
+    cat_features = preprocessor.transformers_[1][1].named_steps["onehot"]
+    print(f"  OneHotEncoder categories: {cat_features.categories_}")
+except Exception:
+    pass
 
 print("\n" + "=" * 60)
 print("✅ Models loaded successfully!")

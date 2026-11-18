@@ -23,6 +23,9 @@ COLUMNS = [
     "Property_Area",
 ]
 
+# Feature columns for the improved KNN pipeline (Loan_ID excluded)
+KNN_FEATURE_COLS = [c for c in COLUMNS if c != "Loan_ID"]
+
 
 def evaluate_models():
     data = pd.read_csv(PROJECT_ROOT / "train.csv")
@@ -41,15 +44,32 @@ def evaluate_models():
         data["Credit_History"].mode()[0]
     )
 
-    for column in data.columns:
-        if data[column].dtype == "object":
-            data[column] = LabelEncoder().fit_transform(data[column])
-
-    features = data[COLUMNS]
-    target = data["Loan_Status"]
-    _, test_features, _, test_target = train_test_split(
-        features, target, test_size=0.2, random_state=42, stratify=target
+    # ------------------------------------------------------------------
+    # Train / test split (stratified, same random state for both models)
+    # ------------------------------------------------------------------
+    train_data, test_data = train_test_split(
+        data, test_size=0.2, random_state=42, stratify=data["Loan_Status"]
     )
+    test_target = test_data["Loan_Status"]
+
+    # ------------------------------------------------------------------
+    # Decision Tree — original preprocessing (LabelEncoder, all columns)
+    # ------------------------------------------------------------------
+    dt_features = test_data[COLUMNS].copy()
+    for column in dt_features.columns:
+        if dt_features[column].dtype == "object":
+            dt_features[column] = LabelEncoder().fit_transform(
+                dt_features[column]
+            )
+    # Encode target to match the model's expected classes (0/1)
+    le_target = LabelEncoder()
+    test_target_encoded = le_target.fit_transform(test_target)
+
+    # ------------------------------------------------------------------
+    # KNN — new pipeline (raw features, Loan_ID excluded,
+    #           Pipeline handles OneHotEncoding + StandardScaler)
+    # ------------------------------------------------------------------
+    knn_features = test_data[KNN_FEATURE_COLS].copy()
 
     models = {
         "Decision Tree": pickle.load(open(PROJECT_ROOT / "model_dt.pkl", "rb")),
@@ -58,17 +78,24 @@ def evaluate_models():
 
     print("\n[MODEL EVALUATION] 20% stratified holdout test set")
     for name, model in models.items():
-        predictions = model.predict(test_features)
+        if name == "Decision Tree":
+            predictions = model.predict(dt_features)
+            report_target = test_target_encoded
+        else:
+            predictions = model.predict(knn_features)
+            report_target = test_target
+
         report = classification_report(
-            test_target, predictions, output_dict=True, zero_division=0
+            report_target, predictions, output_dict=True, zero_division=0
         )
-        matrix = confusion_matrix(test_target, predictions)
+        matrix = confusion_matrix(report_target, predictions)
 
         print(f"\n[MODEL METRICS] {name}")
-        print(f"  Accuracy:  {accuracy_score(test_target, predictions) * 100:.2f}%")
-        print(f"  Precision: {report['1']['precision'] * 100:.2f}%")
-        print(f"  Recall:    {report['1']['recall'] * 100:.2f}%")
-        print(f"  F1 Score:  {report['1']['f1-score'] * 100:.2f}%")
+        print(f"  Accuracy:  {accuracy_score(report_target, predictions) * 100:.2f}%")
+        pos_key = "Y" if "Y" in report else "1"
+        print(f"  Precision: {report[pos_key]['precision'] * 100:.2f}%")
+        print(f"  Recall:    {report[pos_key]['recall'] * 100:.2f}%")
+        print(f"  F1 Score:  {report[pos_key]['f1-score'] * 100:.2f}%")
         print(f"  Confusion Matrix [[TN, FP], [FN, TP]]: {matrix.tolist()}")
 
 
